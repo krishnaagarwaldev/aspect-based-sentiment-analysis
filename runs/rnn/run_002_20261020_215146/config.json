@@ -1,0 +1,14 @@
+{
+    "model_name": "rnn",
+    "epochs": 25,
+    "batch_size": 64,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "seed": 42,
+    "domain": "all",
+    "class_weighted": true,
+    "pretrained_model": "none",
+    "total_train_samples": 35734,
+    "total_val_samples": 7728,
+    "total_test_samples": 7802
+}

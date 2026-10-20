@@ -1,0 +1,7 @@
+model_name,run_id,domain,test_accuracy,test_macro_f1,test_weighted_f1,best_val_macro_f1,best_epoch,epochs,batch_size,learning_rate,class_weighted
+bert_lora,run_002_20261020_220352,all,0.8607,0.7544,0.8671,0.7632,22,25,32,0.0001,True
+bilstm,run_003_20261020_215731,all,0.7654,0.6576,0.7879,0.6752,14,25,64,0.001,True
+rnn,run_002_20261020_215146,all,0.7234,0.602,0.7438,0.6133,12,25,64,0.001,True
+bilstm,run_001_20261020_214217,all,0.392,0.3397,0.3427,0.3709,1,2,32,0.001,True
+rnn,run_001_20261020_213940,all,0.376,0.3259,0.3317,0.3766,2,2,32,0.001,True
+bert_lora,run_001_20261020_214422,all,0.32,0.2429,0.2789,0.1692,1,1,16,0.0001,True

@@ -1,0 +1,104 @@
+# ==========================================
+# Byte-compiled / Cache / Temporary Files
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+*.log
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+.pytest_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+.eggs/
+.ipynb_checkpoints/
+scratch/
+tmp/
+temp/
+
+# ==========================================
+# Virtual Environments
+# ==========================================
+venv/
+env/
+ENV/
+pytorch_env/
+.venv/
+.env
+env.bak/
+venv.bak/
+
+# ==========================================
+# Datasets (Raw & Splits - Keep repository lightweight)
+# ==========================================
+Dataset/
+data_splits/
+
+# ==========================================
+# Caches, Secrets, & Cloud Settings
+# ==========================================
+.cache/
+huggingface/
+transformers_cache/
+wandb/
+.streamlit/secrets.toml
+
+# ==========================================
+# Checkpoints & Model Deployment Rules
+# ==========================================
+# 1. Ignore all raw checkpoint formats by default
+*.pt
+*.pth
+*.bin
+*.onnx
+*.tar
+*.gz
+
+# 2. Ignore aborted / debug runs
+runs/**/run_001*
+runs/**/run_002_20261020_215621*
+
+# 3. Ignore intermediate / latest checkpoints (saves bandwidth & quota)
+runs/**/latest_checkpoint.pt
+runs/**/events.out.tfevents.*
+
+# 4. CRITICAL: Ignore 441 MB full BERT-LoRA state dict (>100MB breaks GitHub push limit)
+runs/bert_lora/**/best_model.pt
+
+# ==========================================
+# EXPLICITLY INCLUDE Best Deployment Models (<35MB each)
+# ==========================================
+# 1. BERT-LoRA Lightweight PEFT Adapter (only 1.19 MB)
+!runs/bert_lora/run_002_20261020_220352/checkpoints/lora_adapter/**
+
+# 2. BiLSTM-Attn Best Checkpoint (31 MB) & Vocab
+!runs/bilstm/run_003_20261020_215731/checkpoints/best_model.pt
+!runs/bilstm/run_003_20261020_215731/vocab.json
+
+# 3. Vanilla RNN Best Checkpoint (22 MB) & Vocab
+!runs/rnn/run_002_20261020_215146/checkpoints/best_model.pt
+!runs/rnn/run_002_20261020_215146/vocab.json
+
+# ==========================================
+# Evaluation Metrics, History, & Plots
+# ==========================================
+!runs/**/metrics.json
+!runs/**/config.json
+!runs/**/training_history.csv
+!runs/**/classification_report.txt
+!runs/**/*.png
+!runs/comparison/*.csv
+!runs/comparison/*.png

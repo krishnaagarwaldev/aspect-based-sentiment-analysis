@@ -1,0 +1,5 @@
+model,checkpoint,domain,num_samples,accuracy,macro_f1,weighted_f1,negative_f1,neutral_f1,positive_f1
+bert_lora,best_model.pt,RESTAURANT,549,0.7122,0.6619,0.7259,0.6508,0.5078,0.8271
+bert_lora,best_model.pt,LAPTOP,362,0.7514,0.7331,0.7657,0.7752,0.5902,0.8339
+bert_lora,best_model.pt,COLLEGE,2271,0.7908,0.7288,0.8003,0.8356,0.4845,0.8663
+bert_lora,best_model.pt,HOSPITALITY,4620,0.9212,0.7689,0.9225,0.8731,0.4659,0.9677
