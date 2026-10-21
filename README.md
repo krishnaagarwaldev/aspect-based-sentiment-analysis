@@ -1,4 +1,5 @@
 # Multi-Domain Aspect-Based Sentiment Analysis (ABSA)
+Live Demo - https://aspect-based-sentiment-analysis-nlp.streamlit.app/
 
 A comprehensive, production-grade Deep Learning and Transformer framework for **Aspect-Based Sentiment Analysis (ABSA)** across multiple diverse domains (Laptops, Restaurants, College Reviews, Hospitality).
 
