@@ -182,6 +182,17 @@ st.markdown(
         letter-spacing: 0.03em;
     }
 
+    .aspect-badge-notfound {
+        background: rgba(239, 68, 68, 0.18);
+        color: #F87171;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        letter-spacing: 0.03em;
+    }
+
     .section-header {
         font-family: 'Outfit', sans-serif;
         font-size: 1.15rem;
@@ -344,6 +355,45 @@ def extract_aspects_from_text(text: str, known_aspects: Set[str]) -> List[str]:
     return sorted(list(found_aspects), key=lambda x: text_lower.find(x))
 
 
+def is_aspect_in_text(aspect: str, text: str) -> bool:
+    """Checks if the aspect (or common plural/singular variants) is present in the text."""
+    aspect_clean = aspect.strip().strip(".,!?;:'\"").lower()
+    text_clean = text.lower()
+    if not aspect_clean:
+        return False
+
+    # 1. Direct word boundary match
+    pattern = r"\b" + re.escape(aspect_clean) + r"\b"
+    if re.search(pattern, text_clean):
+        return True
+
+    # 2. Simple plural/singular match (e.g., picture/pictures, battery/batteries)
+    if aspect_clean.endswith("ies") and len(aspect_clean) > 3:
+        singular_y = aspect_clean[:-3] + "y"
+        if re.search(r"\b" + re.escape(singular_y) + r"\b", text_clean):
+            return True
+    elif aspect_clean.endswith("y") and len(aspect_clean) > 1:
+        plural_ies = aspect_clean[:-1] + "ies"
+        if re.search(r"\b" + re.escape(plural_ies) + r"\b", text_clean):
+            return True
+
+    if aspect_clean.endswith("es") and len(aspect_clean) > 2:
+        singular_es = aspect_clean[:-2]
+        if re.search(r"\b" + re.escape(singular_es) + r"\b", text_clean):
+            return True
+
+    if aspect_clean.endswith("s") and len(aspect_clean) > 1:
+        singular_s = aspect_clean[:-1]
+        if re.search(r"\b" + re.escape(singular_s) + r"\b", text_clean):
+            return True
+    else:
+        plural_s = aspect_clean + "s"
+        if re.search(r"\b" + re.escape(plural_s) + r"\b", text_clean):
+            return True
+
+    return False
+
+
 # ==================== INFERENCE ENGINES ====================
 
 def predict_bert(text: str, aspect: str, model, tokenizer, device: str) -> Tuple[str, float, Dict[str, float]]:
@@ -503,6 +553,24 @@ def main():
             st.markdown(f'<div class="section-header">🔥 3-Model Side-by-Side Comparison ({detection_mode} Aspects)</div>', unsafe_allow_html=True)
 
             for aspect in target_aspects:
+                if not is_aspect_in_text(aspect, user_text):
+                    with st.container():
+                        st.markdown(
+                            f"""
+                            <div class='aspect-name' style='margin-bottom: 6px;'>
+                                🎯 Target Aspect: <b>{aspect.title()}</b>
+                                &nbsp;&nbsp;
+                                <span class='aspect-badge-notfound'>NOT FOUND</span>
+                            </div>
+                            <div style='color: #94A3B8; font-size: 0.88rem; font-weight: 500; margin-bottom: 8px;'>
+                                ⚠️ Aspect not found in review sentence. Model evaluation skipped.
+                            </div>
+                            """,
+                            unsafe_allow_html=True,
+                        )
+                        st.divider()
+                    continue
+
                 b_lbl, b_conf, _ = predict_bert(user_text, aspect, b_model, b_tok, b_dev)
                 l_lbl, l_conf, _ = predict_recurrent(user_text, aspect, lstm_model, lstm_vocab, lstm_dev)
                 r_lbl, r_conf, _ = predict_recurrent(user_text, aspect, rnn_model, rnn_vocab, rnn_dev)
@@ -536,57 +604,99 @@ def main():
             # Evaluate each aspect
             aspect_results = []
             for aspect in target_aspects:
-                label, conf, probs = pred_fn(aspect)
-                aspect_results.append((aspect, label, conf, probs))
+                if is_aspect_in_text(aspect, user_text):
+                    label, conf, probs = pred_fn(aspect)
+                    aspect_results.append((aspect, label, conf, probs, True))
+                else:
+                    aspect_results.append((aspect, None, None, None, False))
 
-            # Global Consensus Sentiment
-            global_label, global_conf, global_probs = compute_global_sentiment(aspect_results)
+            valid_aspect_results = [res for res in aspect_results if res[4]]
 
             st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
-            # Global Card
-            badge_type = f"badge-{global_label[:3]}"
-            st.markdown(
-                f"""
-                <div class="global-card">
-                    <div class="global-label">🌐 Global Review Sentiment ({model_tag})</div>
-                    <div style="margin: 0.4rem 0;"><span class="{badge_type}">{global_label.upper()}</span></div>
-                    <div style="margin-top: 0.6rem; color: #94A3B8; font-size: 0.95rem; font-weight: 500;">
-                        Confidence: <b style="color: #F1F5F9;">{global_conf * 100:.1f}%</b> &nbsp;|&nbsp; 
-                        Pos: <b style="color: #34D399;">{global_probs['positive']*100:.0f}%</b> &nbsp;•&nbsp; 
-                        Neu: <b style="color: #FBBF24;">{global_probs['neutral']*100:.0f}%</b> &nbsp;•&nbsp; 
-                        Neg: <b style="color: #F87171;">{global_probs['negative']*100:.0f}%</b>
+            if valid_aspect_results:
+                # Global Consensus Sentiment
+                global_label, global_conf, global_probs = compute_global_sentiment(
+                    [(r[0], r[1], r[2], r[3]) for r in valid_aspect_results]
+                )
+
+                # Global Card
+                badge_type = f"badge-{global_label[:3]}"
+                st.markdown(
+                    f"""
+                    <div class="global-card">
+                        <div class="global-label">🌐 Global Review Sentiment ({model_tag})</div>
+                        <div style="margin: 0.4rem 0;"><span class="{badge_type}">{global_label.upper()}</span></div>
+                        <div style="margin-top: 0.6rem; color: #94A3B8; font-size: 0.95rem; font-weight: 500;">
+                            Confidence: <b style="color: #F1F5F9;">{global_conf * 100:.1f}%</b> &nbsp;|&nbsp; 
+                            Pos: <b style="color: #34D399;">{global_probs['positive']*100:.0f}%</b> &nbsp;•&nbsp; 
+                            Neu: <b style="color: #FBBF24;">{global_probs['neutral']*100:.0f}%</b> &nbsp;•&nbsp; 
+                            Neg: <b style="color: #F87171;">{global_probs['negative']*100:.0f}%</b>
+                        </div>
                     </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+                    """,
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.markdown(
+                    f"""
+                    <div class="global-card">
+                        <div class="global-label">🌐 Global Review Sentiment ({model_tag})</div>
+                        <div style="margin: 0.4rem 0;"><span class="aspect-badge-notfound" style="font-size: 1.15rem; padding: 6px 18px;">NOT AVAILABLE</span></div>
+                        <div style="margin-top: 0.6rem; color: #94A3B8; font-size: 0.95rem; font-weight: 500;">
+                            None of the specified aspects were found in the review paragraph.
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
 
             # Aspect-Level Breakdown
             st.markdown(f'<div class="section-header">🔍 Aspect Breakdown ({detection_mode} Aspects)</div>', unsafe_allow_html=True)
 
-            for aspect, label, conf, probs in aspect_results:
-                badge_cls = f"aspect-badge-{label[:3]}"
-                with st.container():
-                    col1, col2 = st.columns([3, 4])
-                    with col1:
-                        st.markdown(
-                            f"""
-                            <div style="padding-top: 5px;">
-                                <span class="aspect-name">🎯 {aspect.title()}</span>
-                                &nbsp;&nbsp;
-                                <span class="{badge_cls}">{label.upper()}</span>
-                                <span style="color: #94A3B8; font-size: 0.85rem; font-weight: 600; margin-left: 6px;">{conf * 100:.1f}%</span>
-                            </div>
-                            """,
-                            unsafe_allow_html=True,
-                        )
-                    with col2:
-                        p_pos = probs["positive"]
-                        p_neu = probs["neutral"]
-                        p_neg = probs["negative"]
-                        st.progress(conf, text=f"Confidence: {conf*100:.1f}% (Pos: {p_pos*100:.0f}%, Neu: {p_neu*100:.0f}%, Neg: {p_neg*100:.0f}%)")
-                    st.markdown("<div style='height: 4px;'></div>", unsafe_allow_html=True)
+            for aspect, label, conf, probs, found in aspect_results:
+                if found:
+                    badge_cls = f"aspect-badge-{label[:3]}"
+                    with st.container():
+                        col1, col2 = st.columns([3, 4])
+                        with col1:
+                            st.markdown(
+                                f"""
+                                <div style="padding-top: 5px;">
+                                    <span class="aspect-name">🎯 {aspect.title()}</span>
+                                    &nbsp;&nbsp;
+                                    <span class="{badge_cls}">{label.upper()}</span>
+                                    <span style="color: #94A3B8; font-size: 0.85rem; font-weight: 600; margin-left: 6px;">{conf * 100:.1f}%</span>
+                                </div>
+                                """,
+                                unsafe_allow_html=True,
+                            )
+                        with col2:
+                            p_pos = probs["positive"]
+                            p_neu = probs["neutral"]
+                            p_neg = probs["negative"]
+                            st.progress(conf, text=f"Confidence: {conf*100:.1f}% (Pos: {p_pos*100:.0f}%, Neu: {p_neu*100:.0f}%, Neg: {p_neg*100:.0f}%)")
+                        st.markdown("<div style='height: 4px;'></div>", unsafe_allow_html=True)
+                else:
+                    with st.container():
+                        col1, col2 = st.columns([3, 4])
+                        with col1:
+                            st.markdown(
+                                f"""
+                                <div style="padding-top: 5px;">
+                                    <span class="aspect-name">🎯 {aspect.title()}</span>
+                                    &nbsp;&nbsp;
+                                    <span class="aspect-badge-notfound">NOT FOUND</span>
+                                </div>
+                                """,
+                                unsafe_allow_html=True,
+                            )
+                        with col2:
+                            st.markdown(
+                                "<div style='padding-top: 6px; color: #94A3B8; font-size: 0.88rem; font-weight: 500;'>⚠️ Aspect not found in review sentence</div>",
+                                unsafe_allow_html=True,
+                            )
+                        st.markdown("<div style='height: 4px;'></div>", unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
