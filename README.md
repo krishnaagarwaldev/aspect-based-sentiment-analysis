@@ -154,7 +154,7 @@ Outputs:
 ### 6. Launch Streamlit Web Application
 Launch the interactive web app powered by the best **BERT-LoRA (PEFT)** model:
 ```powershell
-& "C:\#### CSE\#####Pytorch\pytorch_env\Scripts\python.exe" -m streamlit run app.py
+& "pytorch_env\Scripts\python.exe" -m streamlit run app.py
 ```
 * Features:
   * **Interactive Aspect Analyzer**: Real-time sentiment prediction for single or multiple aspects with confidence distribution bars.
