@@ -96,54 +96,54 @@ ABSA_NLP/
 Use the dedicated `pytorch_env` interpreter:
 ```powershell
 # In PowerShell:
-$PYTHON = "C:\#### CSE\#####Pytorch\pytorch_env\Scripts\python.exe"
+$PYTHON = "pytorch_env\Scripts\python.exe"
 ```
 
 ### 1. Training Runs
 
 Train **Vanilla RNN Baseline**:
 ```powershell
-& "C:\#### CSE\#####Pytorch\pytorch_env\Scripts\python.exe" train.py --model rnn --epochs 10 --batch_size 32
+& "pytorch_env\Scripts\python.exe" train.py --model rnn --epochs 10 --batch_size 32
 ```
 
 Train **BiLSTM with Aspect Attention**:
 ```powershell
-& "C:\#### CSE\#####Pytorch\pytorch_env\Scripts\python.exe" train.py --model bilstm --epochs 10 --batch_size 32
+& "pytorch_env\Scripts\python.exe" train.py --model bilstm --epochs 10 --batch_size 32
 ```
 
 Train **BERT Fine-Tuning**:
 ```powershell
-& "C:\#### CSE\#####Pytorch\pytorch_env\Scripts\python.exe" train.py --model bert --epochs 5 --batch_size 16 --lr 2e-5
+& "pytorch_env\Scripts\python.exe" train.py --model bert --epochs 5 --batch_size 16 --lr 2e-5
 ```
 
 Train **BERT-LoRA (PEFT)**:
 ```powershell
-& "C:\#### CSE\#####Pytorch\pytorch_env\Scripts\python.exe" train.py --model bert_lora --epochs 5 --batch_size 16 --lr 1e-4
+& "pytorch_env\Scripts\python.exe" train.py --model bert_lora --epochs 5 --batch_size 16 --lr 1e-4
 ```
 
 ### 2. Resuming Interrupted Training
 If training was interrupted, simply pass the path to `latest_checkpoint.pt`:
 ```powershell
-& "C:\#### CSE\#####Pytorch\pytorch_env\Scripts\python.exe" train.py --model bert_lora --resume runs/bert_lora/run_001_YYYYMMDD_HHMMSS/checkpoints/latest_checkpoint.pt
+& "pytorch_env\Scripts\python.exe" train.py --model bert_lora --resume runs/bert_lora/run_001_YYYYMMDD_HHMMSS/checkpoints/latest_checkpoint.pt
 ```
 
 ### 3. Standalone Checkpoint Evaluation
 Evaluate a trained model checkpoint on any split or specific domain:
 ```powershell
-& "C:\#### CSE\#####Pytorch\pytorch_env\Scripts\python.exe" evaluate.py --checkpoint runs/bilstm/run_001_YYYYMMDD_HHMMSS/checkpoints/best_model.pt --domain laptop --split test
+& "pytorch_env\Scripts\python.exe" evaluate.py --checkpoint runs/bilstm/run_001_YYYYMMDD_HHMMSS/checkpoints/best_model.pt --domain laptop --split test
 ```
 
 ### 4. Cross-Domain Transfer Experiments
 Train on a source domain (e.g., `restaurant`) and test zero-shot generalization across other domains (`laptop`, `hospitality`, `college`):
 ```powershell
-& "C:\#### CSE\#####Pytorch\pytorch_env\Scripts\python.exe" cross_domain.py --model bilstm --source_domain restaurant --target_domains laptop hospitality college --epochs 5
+& "pytorch_env\Scripts\python.exe" cross_domain.py --model bilstm --source_domain restaurant --target_domains laptop hospitality college --epochs 5
 ```
 Results will be saved to `runs/comparison/cross_domain_results.csv`.
 
 ### 5. Compare All Model Runs
 Scan all experiment runs in `runs/` and generate a comparative table and plot:
 ```powershell
-& "C:\#### CSE\#####Pytorch\pytorch_env\Scripts\python.exe" compare_runs.py
+& "pytorch_env\Scripts\python.exe" compare_runs.py
 ```
 Outputs:
 - `runs/comparison/model_comparison.csv`
